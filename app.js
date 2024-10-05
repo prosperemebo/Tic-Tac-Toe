@@ -20,10 +20,20 @@ const DEFAULT_STATE = {
   },
 };
 
+const WINS = {
+  '012': true,
+  345: true,
+  678: true,
+  '036': true,
+  147: true,
+  258: true,
+  '048': true,
+  246: true,
+};
+
 const boardEl = document.getElementById('board');
 const playerEl = document.getElementById('playerDisplay');
 
-// const state = { ...DEFAULT_STATE, board: { ...DEFAULT_STATE.board } };
 const state = JSON.parse(JSON.stringify(DEFAULT_STATE));
 
 function renderBoard(cb) {
@@ -68,7 +78,10 @@ function play(event) {
 
   renderBoard();
   renderPlayer();
-  checkWinner();
+
+  setTimeout(() => {
+    checkWinner();
+  }, 100);
 }
 
 function renderPlayer() {
@@ -80,10 +93,19 @@ function renderPlayer() {
 }
 
 function checkWinner() {
-  if (Object.values(state.board).every((val) => val !== null)) {
-    alert('Game Over!');
+  const winner = findWinner();
 
-    state.board = DEFAULT_STATE.board;
+  if (winner) {
+    alert(`Player ${winner} won!`);
+    
+    resetBoard();
+    renderBoard();
+  }
+  
+  if (Object.values(state.board).every((val) => val !== null)) {
+    alert('It\'s a draw!');
+
+    resetBoard();
     renderBoard();
   }
 }
@@ -98,3 +120,36 @@ function main() {
 boardEl.addEventListener('click', play);
 
 main();
+
+function findWinner() {
+  const winsMap = {};
+  let winner = null;
+
+  Object.keys(WINS).forEach((key) => {
+    const boardIndexes = key.split('');
+
+    for (let i = 0; i < boardIndexes.length; i++) {
+      const position = boardIndexes[i];
+
+      if (!winsMap[key]) {
+        winsMap[key] = [state.board[position]];
+      } else {
+        winsMap[key] = [...winsMap[key], state.board[position]];
+      }
+    }
+  });
+
+  Object.values(winsMap).forEach((wins) => {
+    if (wins.every((i) => i === 'X')) {
+      winner = PLAYERS.player1;
+    } else if (wins.every((i) => i === 'O')) {
+      winner = PLAYERS.player2;
+    }
+  });
+
+  return winner;
+}
+
+function resetBoard() {
+  state.board = JSON.parse(JSON.stringify(DEFAULT_STATE.board));
+}
